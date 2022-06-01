@@ -7,6 +7,7 @@ const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
 const db = "mongodb+srv://alaa:alaa@cluster0.nk0kr.mongodb.net/test";
 
+// Connexion à la BDD
 mongoose.connect(db, (err) => {
     if (err) {
         console.error("Error" + err);
@@ -19,19 +20,23 @@ mongoose.connect(db, (err) => {
 function verifyToken(req, res, next) {
     const authorization = req.headers.authorization;
 
-    console.log("this is ", authorization);
+    console.log("Bearer ", authorization);
     if (!authorization) {
+        // if the authorization key is  - NOT -  part of the header
         return res.status(401).send("Unauthorized Request");
     }
+    // if the authorization key is part of the header ()
     let token = req.headers.authorization.split(" ")[1];
     if (token === "null") {
+        // if the token is not present
         return res.status(401).send("Unauthorized Request");
     }
-
+    // return the decoded token only if it is valid, if not valid so there is no payload
     let payload = jwt.verify(token, "secretKey");
     if (!payload) {
         return res.status(401).send("Unauthorized Request");
     }
+    // if all condiontns passed => we assign the payload subject as the request userID and then pas the execution to the next handler
     req.userId = payload.subject;
     next();
 }
@@ -41,13 +46,22 @@ router.get("/", (req, res) => {
 });
 
 router.post("/register", (req, res) => {
+    // extract the user data from the request
     let userData = req.body;
+    // a user can mongodb can understand its structure 
     let user = new User(userData);
+    user.password = userData.password;
+    // Call setPassword function to hash password 
+    user.setPassword(userData.password);
+    // then save the data in mongodb
     user.save((error, registeredUser) => {
         if (error) {
             console.error(error);
         } else {
-            let payload = {
+            // save user in DB
+            // res.status(200).send(registeredUser)
+            // Test it with POSTMAN=========================!!!!
+            let payload = { // by convention the key is subject and the value is registeredUser._id (in mongoDB)
                 subject: registeredUser._id,
             };
             let token = jwt.sign(payload, "secretKey", { expiresIn: 600 });
@@ -57,22 +71,26 @@ router.post("/register", (req, res) => {
 });
 
 router.post("/login", (req, res) => {
+    // extract the user data from the request
     let userData = req.body;
     // check if email exist in database
-    User.findOne({ email: userData.email }, (error, user) => {
+    User.findOne({ email: userData.email }, (error, loggingUser) => {
+        //findOne returns one document
         if (error) {
             console.log(error);
         } else {
-            if (!user) {
+            if (!loggingUser) {
                 res.status(401).send("Invalid Email");
-            } else if (user.password !== userData.password) {
-                res.status(401).send("Invalid password");
-            } else {
-                let payload = {
-                    subject: user._id,
+            } else if (loggingUser.validPassword(req.body.password)) {
+                let payload = { // by convention the key is subject and the value is loggingUser._id (in mongoDB)
+                    subject: loggingUser._id,
                 };
                 let token = jwt.sign(payload, "secretKey");
+                // res.status(200).send(loggingUser);
                 res.status(200).send({ token });
+
+            } else {
+                res.status(401).send("Invalid password");
             }
         }
     });

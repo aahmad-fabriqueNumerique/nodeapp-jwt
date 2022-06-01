@@ -16,7 +16,7 @@ Il s'agit d'une application node avec un serveur Express. Cette application serv
   3. Créer le serveur Express
   4. Créer la BDD avec mongo DB et créer le schema avec Mongoose
   5. Créer les APIs et les routes :
-     1. Inscription nouveax utilisateurs
+     1. Inscription des nouveax utilisateurs
      2. Connexion des utilisateurs
      3. récupérer la liste des voitures
      4. récupérer la liste de nos offres
@@ -31,7 +31,7 @@ Il s'agit d'une application node avec un serveur Express. Cette application serv
   3. Créer le formulaire de connexion / inscription
   4. Créer un service pour l'inscription, la connexion et la récupération des données
   5. Sécuriser la connexion avec JWT 
-  6. Socker le token dans le front avec LocalStorage
+  6. Stocker le token dans le front avec LocalStorage
   7. Sécuriser les routes avec AuthGuard
   8. Créer un interceptor de token
   9. Créer un logout
